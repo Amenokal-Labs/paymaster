@@ -35,7 +35,9 @@ forge install OpenZeppelin/openzeppelin-contracts
 
 ## Integrate Foundry with VSCode
 After installing OpenZeppelin as a dependency try importing something from it in the contract (your contract is there under the /src directory), If you are using VSCode an error will popup
+
 ![Alt text](image.png)
+
 To fix this error, Run this command
 ```bash
 forge remappings > remappings.txt
