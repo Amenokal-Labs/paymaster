@@ -40,3 +40,17 @@ To fix this error, Run this command
 ```bash
 forge remappings > remappings.txt
 ```
+
+## Working with Foundry
+### Compiling
+To compile the contracts, run the following command
+```bash
+forge compile
+```
+
+### Testing
+To test the contracts, run the following command:
+```bash
+forge test
+```
+
