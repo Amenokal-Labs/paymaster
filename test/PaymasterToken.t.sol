@@ -14,8 +14,8 @@ contract PaymasterTokenTest is Test {
     function setUp() public {
         paymasterToken = new PaymasterToken();
         owner = address(this);
-        spender = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;
-        receiver = 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC;
+        spender = makeAddr("spender");
+        receiver = makeAddr("receiver");
 
         paymasterToken.mint(owner, 100);
     }
@@ -34,7 +34,7 @@ contract PaymasterTokenTest is Test {
         assertEq(paymasterToken.balanceOf(receiver), 10000000);
     }
 
-    function test_TransferWithoutApproval() public{
+    function testFail_TransferWithoutApproval() public{
         vm.prank(address(spender));
         paymasterToken.transferFrom(owner, receiver, 10000000);
         assertEq(paymasterToken.balanceOf(receiver), 10000000);

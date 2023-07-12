@@ -45,7 +45,7 @@ forge remappings > remappings.txt
 ### Compiling
 To compile the contracts, run the following command
 ```bash
-forge compile
+forge build
 ```
 
 ### Testing
