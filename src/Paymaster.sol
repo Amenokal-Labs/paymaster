@@ -1,49 +1,47 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "@eth-infinitism/contracts/core/BasePaymaster.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import {PaymasterToken} from "./PaymasterToken.sol";
 
-contract Paymaster is PaymasterToken, BasePaymaster {
-    
-    IERC20 paymaster;
-    mapping (address => uint256) public balances;
-    
-    constructor(IEntryPoint _entryPoint, address token) BasePaymaster(_entryPoint) {
-        paymaster = IERC20(token);
+contract Paymaster{
+
+    uint constant GAS_PRICE = 0.0009664 ether;
+    uint constant CONVERTED_GAS_TO_TOKEN_PRICE = 1;
+
+    mapping(IERC20 => mapping(address => uint)) public balances;
+
+    function fillPaymaster(IERC20 token, uint amount) public{
+        // token.approve(address(this), amount);
+        token.transferFrom(msg.sender, address(this), amount);
+        balances[token][msg.sender] += amount;
     }
 
-// We don't need this function for now, but as the Paymaster is a BasePaymaster, we need to implement it.
-    function _validatePaymasterUserOp(
-        UserOperation calldata userOp,
-        bytes32 userOpHash,
-        uint256 maxCost
-    )
-        internal
-        virtual
-        override
-        returns (bytes memory context, uint256 validationData)
-    {}
+    function sponsorGas(IERC20 token, address tokenAddress, address from, address target) public {
+        token = IERC20(tokenAddress);
+        uint gasPriceInETH = getRealGasPrice();
+        uint gasPriceInTKN = convertGasToToken(/*token*/);
+        require (balances[token][from] >= gasPriceInTKN, "Not enough balance");
+        balances[token][from] -= gasPriceInTKN;
+        // It's either we send directly eth
+        payGasInETH(gasPriceInETH, payable(target));
 
-    function fillPaymaster(uint amount) public{
-        paymaster.approve(address(this), amount);
-        paymaster.transferFrom(msg.sender, address(this), amount);
-        balances[msg.sender] = amount;
+        // Or we send the token
+        token.approve(address(this), gasPriceInTKN);
+        token.transferFrom(from, target, gasPriceInTKN);
+
+        // I think with eth would be the optimal solution
     }
 
-    function getEthPrice(uint256 amount) public view returns (uint256) {
-        return 0;
+    function getRealGasPrice() public pure returns (uint256) {
+        return GAS_PRICE;
     }
 
-    function getGasPrice(uint256 amount) public view returns (uint256) {
-        return 0;
+    function convertGasToToken(/*IERC20 token*/) public pure returns (uint256) {
+        return CONVERTED_GAS_TO_TOKEN_PRICE;
     }
 
-    function sendGas(uint256 amount, address target) public {
-        paymaster.transfer(target, amount);
+    function payGasInETH(uint amount, address payable target) public payable{
+        target.transfer(amount);
     }
-
 
 }
