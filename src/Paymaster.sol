@@ -16,20 +16,20 @@ contract Paymaster{
         balances[token][msg.sender] += amount;
     }
 
-    function sponsorGas(IERC20 token, address tokenAddress, address from, address target) public {
+    function sponsorGas(IERC20 token, address tokenAddress, address from, address target, uint choice) public {
         token = IERC20(tokenAddress);
         uint gasPriceInETH = getRealGasPrice();
         uint gasPriceInTKN = convertGasToToken(/*token*/);
         require (balances[token][from] >= gasPriceInTKN, "Not enough balance");
         balances[token][from] -= gasPriceInTKN;
-        // It's either we send directly eth
-        payGasInETH(gasPriceInETH, payable(target));
+        
+        if(choice == 0)
+            payGasInETH(gasPriceInETH, payable(target));
 
-        // Or we send the token
-        token.approve(address(this), gasPriceInTKN);
-        token.transferFrom(from, target, gasPriceInTKN);
-
-        // I think with eth would be the optimal solution
+        else{
+            token.approve(address(this), gasPriceInTKN);
+            token.transferFrom(from, target, gasPriceInTKN);
+        }
     }
 
     function getRealGasPrice() public pure returns (uint256) {
